@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<title>Directo - Formula 1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+
+<h1 class="titulo">📺 Directo F1</h1>
+
+</div>
+<div class="card fade-in">
+<a href="acestream://d65257bb934b73647374224fd62d836815804be2" class="btn">
+      📡 Formula 1 📡
+</a>
+
+<div class="card fade-in">
+<a href="acestream://651dd1e689a9a7d3b0695191dcf44b4d6e7541eb" class="btn">
+       📡 Canal Rally ingles 📡
+</a>
+</div>
+
+<div class="card fade-in">
+<a href="acestream://895d08633bb22c2573281655cf3ca44de476cc73" class="btn">
+        📡 Canal F1 📡
+</a>
+</div>
+
+<div class="card fade-in">
+<a href="acestream://91b2a1fe85f5bb4a6cf9ef6d01cc65883d986920" class="btn">
+        📡 Canal champions📡
+</a>
+</div>
+
+<div class="card fade-in">
+<a href="acestream://f863873de9f7b2996dde19a0657dd89835af" class="btn">
+        📡 VomiLiga 📡
+</a>
+
+</div>
+
+<a href="index.html" class="btn">⬅ Volver</a>
+
+<script>
+
+const video = document.getElementById('video');
+
+// 🔴 PEGA AQUÍ TU ENLACE .m3u8
+const videoSrc = "PEGA_AQUI_TU_ENLACE.m3u8";
+
+if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(videoSrc);
+    hls.attachMedia(video);
+} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = videoSrc;
+}
+
+</script>
+
+</body>
+</html>

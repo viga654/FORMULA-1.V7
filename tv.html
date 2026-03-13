@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<title> TV</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+body{
+background:#0b0b0b;
+color:white;
+font-family:Arial;
+margin:0;
+padding:15px;
+}
+
+h1{
+text-align:center;
+color:#00bcd4;
+}
+
+input,textarea{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:12px;
+background:#1c1c1c;
+color:white;
+}
+
+textarea{
+height:120px;
+}
+
+button{
+padding:12px;
+border:none;
+border-radius:12px;
+margin-top:8px;
+font-size:15px;
+width:100%;
+color:white;
+cursor:pointer;
+}
+
+.add{background:#00bcd4;}
+.play{background:#4caf50;}
+.copy{background:#ff9800;}
+.delete{background:#e53935;}
+.fav{background:#ffd400;color:black;}
+.import{background:#9c27b0;}
+.export{background:#3f51b5;}
+.convert{background:#009688;}
+
+.card{
+background:#1c1c1c;
+margin-top:15px;
+padding:15px;
+border-radius:15px;
+}
+
+.nombre{
+font-size:18px;
+font-weight:bold;
+display:flex;
+align-items:center;
+gap:8px;
+}
+
+.logo{
+width:28px;
+height:28px;
+border-radius:6px;
+object-fit:cover;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1> TV</h1>
+
+<input id="buscar" placeholder="Buscar canal..." onkeyup="buscar()">
+
+<input id="nombre" placeholder="Nombre del canal">
+<input id="link" placeholder="AceStream ID o enlace">
+
+<button class="add" onclick="guardar()"> Añadir canal</button>
+
+<textarea id="listaTexto" placeholder="Pega aquí lista de canales..."></textarea>
+
+<button class="convert" onclick="convertirLista()">
+ Convertir lista
+</button>
+
+<button class="import" onclick="document.getElementById('file').click()">
+ Importar JSON
+</button>
+
+<button class="export" onclick="exportar()">
+ Exportar lista
+</button>
+
+<input type="file" id="file" accept=".json" style="display:none" onchange="importar(event)">
+
+<div id="lista"></div>
+
+<script>
+
+let canales=[];
+
+if(localStorage.getItem("canales")){
+canales=JSON.parse(localStorage.getItem("canales"));
+}
+
+function abrir(link){
+
+if(link.startsWith("acestream://")){
+window.location.href=link;
+return;
+}
+
+if(link.length===40){
+window.location.href="acestream://"+link;
+return;
+}
+
+window.location.href=link;
+
+}
+
+function copiar(link){
+
+navigator.clipboard.writeText(link);
+alert("Enlace copiado");
+
+}
+
+function favorito(i){
+
+canales[i].fav=!canales[i].fav;
+
+guardarLocal();
+mostrar();
+
+}
+
+function guardarLocal(){
+localStorage.setItem("canales",JSON.stringify(canales));
+}
+
+function mostrar(){
+
+let lista=[...canales];
+
+lista.sort((a,b)=>{
+return (b.fav===true)-(a.fav===true) || a.nombre.localeCompare(b.nombre);
+});
+
+let html="";
+
+lista.forEach((c)=>{
+
+let i=canales.indexOf(c);
+
+let logo=`https://logo.clearbit.com/${c.nombre.replace(/ /g,'').toLowerCase()}.com`;
+
+html+=`
+<div class="card">
+
+<div class="nombre">
+<img class="logo" src="${logo}" onerror="this.style.display='none'">
+${c.fav?" ":""}${c.nombre}
+</div>
+
+<br>
+
+<button class="play" onclick="abrir('${c.link}')">
+ Abrir canal
+</button>
+
+<button class="copy" onclick="copiar('${c.link}')">
+ Copiar enlace
+</button>
+
+<button class="fav" onclick="favorito(${i})">
+ Favorito
+</button>
+
+<button class="delete" onclick="borrar(${i})">
+ Eliminar
+</button>
+
+</div>
+`;
+
+});
+
+document.getElementById("lista").innerHTML=html;
+
+}
+
+function guardar(){
+
+let nombre=document.getElementById("nombre").value.trim();
+let link=document.getElementById("link").value.trim();
+
+if(nombre==""||link==""){
+alert("Completa los campos");
+return;
+}
+
+canales.push({
+nombre:nombre,
+link:link,
+fav:false
+});
+
+guardarLocal();
+
+document.getElementById("nombre").value="";
+document.getElementById("link").value="";
+
+mostrar();
+
+}
+
+function borrar(i){
+
+if(!confirm("Eliminar canal?")) return;
+
+canales.splice(i,1);
+
+guardarLocal();
+mostrar();
+
+}
+
+function buscar(){
+
+let texto=document.getElementById("buscar").value.toLowerCase();
+
+let cards=document.querySelectorAll(".card");
+
+cards.forEach(c=>{
+
+let nombre=c.innerText.toLowerCase();
+
+c.style.display=nombre.includes(texto)?"block":"none";
+
+});
+
+}
+
+function convertirLista(){
+
+let texto=document.getElementById("listaTexto").value.trim();
+
+if(texto==""){
+alert("Pega una lista primero");
+return;
+}
+
+let lineas=texto.split("\n");
+
+for(let i=0;i<lineas.length;i+=2){
+
+let nombre=lineas[i];
+let link=lineas[i+1];
+
+if(nombre && link){
+
+canales.push({
+nombre:nombre.trim(),
+link:link.trim(),
+fav:false
+});
+
+}
+
+}
+
+guardarLocal();
+
+document.getElementById("listaTexto").value="";
+
+mostrar();
+
+alert("Canales añadidos");
+
+}
+
+function importar(event){
+
+let file=event.target.files[0];
+
+if(!file) return;
+
+let reader=new FileReader();
+
+reader.onload=function(e){
+
+try{
+
+let data=JSON.parse(e.target.result);
+
+canales=data;
+
+guardarLocal();
+
+mostrar();
+
+alert("Canales importados");
+
+}catch{
+alert("Archivo JSON inválido");
+}
+
+};
+
+reader.readAsText(file);
+
+}
+
+function exportar(){
+
+let dataStr=JSON.stringify(canales,null,2);
+
+let blob=new Blob([dataStr],{type:"application/json"});
+
+let url=URL.createObjectURL(blob);
+
+let a=document.createElement("a");
+
+a.href=url;
+a.download="canales.json";
+
+a.click();
+
+}
+
+mostrar();
+
+</script>
+
+</body>
+</html>
